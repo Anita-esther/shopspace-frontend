@@ -1,0 +1,1239 @@
+/* ShopSpace brand theme — University of Calabar colors */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ss-primary: #C05621;        /* burnt orange - primary actions, links, prices */
+  --ss-primary-light: #DD7A3E;
+  --ss-primary-dark: #9C4517;
+  --ss-header: #1E3A8A;         /* royal blue - headers/nav bars only */
+  --ss-header-dark: #142A63;
+  --ss-header-tint: #E6EDFB;    /* soft blue for inactive category icon circles */
+  --ss-frame-bg: #DDE3E9;       /* soft grey-blue backdrop behind the content card */
+  --ss-accent: #8ECAE6;         /* baby blue - badges, unread counts, light highlights */
+  --ss-accent-text: #0B4F6C;    /* readable dark text/icon color on baby blue */
+  --ss-bg: #FAFAF8;
+  --ss-surface: #FFFFFF;
+  --ss-text: #1A1A1A;
+  --ss-text-muted: #6B6B6B;
+  --ss-border: #E4E4E0;
+  --ss-danger: #D92020;
+  --ss-success: #16A765;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--ss-bg);
+  color: var(--ss-text);
+}
+
+/* --- Auth pages (Login / Register) --- */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--ss-frame-bg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--ss-surface);
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .auth-card {
+    max-width: none;
+    min-height: 100vh;
+    border-radius: 0;
+    box-shadow: none;
+    justify-content: center;
+  }
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  margin: 0 auto 12px;
+  background: linear-gradient(135deg, var(--ss-header), var(--ss-header-dark));
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.auth-brand h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.auth-tagline {
+  color: var(--ss-text-muted);
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.auth-label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 14px;
+  color: var(--ss-text);
+}
+
+.auth-input {
+  padding: 12px 14px;
+  border: 1px solid var(--ss-border);
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.auth-input:focus {
+  border-color: var(--ss-primary);
+}
+
+.auth-error {
+  color: var(--ss-danger);
+  font-size: 14px;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+.auth-button {
+  margin-top: 24px;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: var(--ss-primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.auth-button:hover:not(:disabled) {
+  background: var(--ss-primary-dark);
+}
+
+.auth-button:disabled {
+  background: var(--ss-border);
+  color: var(--ss-text-muted);
+  cursor: not-allowed;
+}
+
+.auth-switch {
+  text-align: center;
+  font-size: 14px;
+  color: var(--ss-text-muted);
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.auth-switch a {
+  color: var(--ss-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* --- Market page --- */
+.market-page-outer {
+  background: var(--ss-frame-bg);
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+.market-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--ss-surface);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  padding-bottom: 20px;
+}
+
+.market-page > *:not(.market-header):not(.ss-page-header):not(.chat-product-banner):not(.chat-room-messages):not(.chat-room-input-bar) {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Width modifiers so other pages can reuse the same white card at a
+   narrower measure than the market grid's 1100px. */
+.market-page.ss-medium {
+  max-width: 640px;
+}
+
+.market-page.ss-narrow {
+  max-width: 480px;
+}
+
+/* Shared single-row royal blue header for every non-market page: a back
+   button plus a title, matching market-header's color/weight but without
+   the hamburger/menu machinery that's specific to MarketHome. */
+.ss-page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ss-header);
+  padding: 16px 20px;
+}
+
+.ss-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  padding: 2px;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.ss-page-header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.market-header {
+  background: var(--ss-header);
+  padding: 14px 20px;
+}
+
+.market-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.market-header h1 {
+  margin: 0;
+  color: #fff;
+  font-size: 20px;
+}
+
+.market-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+.market-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.market-user {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+}
+
+.market-header .market-btn-ghost {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+
+.market-header .market-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.market-btn-primary {
+  background: var(--ss-primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.market-btn-primary:hover {
+  background: var(--ss-primary-dark);
+}
+
+.market-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--ss-border);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--ss-text);
+  white-space: nowrap;
+}
+
+.market-btn-ghost:hover {
+  background: var(--ss-border);
+}
+
+/* Rounded pill search bar */
+.market-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ss-bg);
+  border-radius: 999px;
+  padding: 10px 16px;
+  margin-top: 20px;
+}
+
+.market-search-icon {
+  color: var(--ss-text-muted);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.market-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  font-family: inherit;
+  min-width: 0;
+}
+
+/* Horizontally scrollable category icon row */
+.market-category-row {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding-top: 18px;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.market-category-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  width: 64px;
+}
+
+.market-category-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ss-header-tint);
+  color: var(--ss-header);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.market-category-icon.active .market-category-icon-circle {
+  background: var(--ss-header);
+  color: #fff;
+}
+
+.market-category-icon-label {
+  font-size: 11px;
+  color: var(--ss-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+.market-category-icon.active .market-category-icon-label {
+  color: var(--ss-text);
+  font-weight: 600;
+}
+
+/* Secondary dropdown filter, kept alongside the icon row */
+.market-filters {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.market-category-select {
+  padding: 10px 14px;
+  border: 1px solid var(--ss-border);
+  border-radius: 10px;
+  font-size: 14px;
+  background: #fff;
+  max-width: 100%;
+}
+
+.market-status {
+  text-align: center;
+  color: var(--ss-text-muted);
+  padding: 40px 0;
+}
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.market-card {
+  background: var(--ss-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.market-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.market-card-image {
+  aspect-ratio: 1;
+  background: var(--ss-border);
+  position: relative;
+}
+
+.market-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.market-card-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--ss-accent);
+  color: var(--ss-accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  z-index: 1;
+  max-width: calc(100% - 16px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ss-text-muted);
+  font-size: 24px;
+}
+
+.market-card-body {
+  padding: 10px 12px 12px;
+}
+
+.market-card-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-card-price {
+  color: var(--ss-primary-dark);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* --- Responsive breakpoints --- */
+@media (max-width: 640px) {
+  .market-page-outer {
+    padding: 0;
+  }
+
+  .market-page {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .market-header {
+    border-radius: 0;
+  }
+
+  .market-menu-toggle {
+    display: block;
+  }
+
+  .market-header-actions {
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .market-header-actions.open {
+    display: flex;
+  }
+
+  .market-header-actions .market-btn-ghost,
+  .market-header-actions .market-btn-primary,
+  .market-header-actions .market-user {
+    width: 100%;
+    text-align: center;
+  }
+
+  .market-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (min-width: 641px) {
+  .market-header-actions {
+    display: flex !important;
+  }
+}
+
+
+/* --- Product detail page --- */
+.product-detail-page {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
+
+.product-detail-image {
+  aspect-ratio: 1;
+  background: var(--ss-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-detail-image .market-card-placeholder {
+  font-size: 40px;
+}
+
+.product-detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.product-detail-body h1 {
+  margin: 0 0 8px;
+}
+
+.product-detail-price {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ss-primary-dark);
+  margin-bottom: 8px;
+}
+
+.product-detail-meta {
+  display: flex;
+  gap: 8px;
+  color: var(--ss-text-muted);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.product-detail-description {
+  line-height: 1.6;
+  color: var(--ss-text);
+  margin-bottom: 20px;
+}
+
+.product-detail-seller {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--ss-text-muted);
+}
+
+.product-detail-cta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-detail-cta {
+  width: 100%;
+}
+
+.product-detail-own-note {
+  color: var(--ss-text-muted);
+  font-style: italic;
+}
+
+/* --- Transactions page --- */
+.transactions-page {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transaction-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ss-bg);
+  border-radius: 12px;
+  padding: 12px;
+  flex-wrap: wrap;
+}
+
+.transaction-image {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--ss-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--ss-text-muted);
+}
+
+.transaction-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.transaction-body {
+  flex: 1;
+  min-width: 160px;
+}
+
+.transaction-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.transaction-meta {
+  font-size: 12px;
+  color: var(--ss-text-muted);
+  margin-top: 2px;
+}
+
+.transaction-price {
+  color: var(--ss-primary-dark);
+  font-weight: 700;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.transaction-status {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.transaction-status-pending {
+  background: #FDF3E7;
+  color: var(--ss-primary-dark);
+}
+
+.transaction-status-completed {
+  background: #E1F5EE;
+  color: #085041;
+}
+
+.transaction-status-cancelled {
+  background: #FCEBEB;
+  color: #791F1F;
+}
+
+.transaction-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.transaction-cancel {
+  color: var(--ss-danger);
+  border-color: var(--ss-danger);
+}
+
+/* --- Create listing page --- */
+.create-listing-page {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
+
+.create-listing-form {
+  display: flex;
+  flex-direction: column;
+}
+
+textarea.auth-input {
+  font-family: inherit;
+  resize: vertical;
+}
+
+.listing-photo-input {
+  /* The real file input is invisible; the dropzone/preview above it is what's
+     shown and clicked, via the shared "photo" id/htmlFor. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.listing-photo-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 160px;
+  border: 1.5px dashed var(--ss-border);
+  border-radius: 10px;
+  color: var(--ss-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.listing-photo-dropzone:hover {
+  border-color: var(--ss-primary);
+  background-color: #FBF4EF;
+}
+
+.listing-photo-dropzone i {
+  font-size: 26px;
+  color: var(--ss-primary);
+}
+
+.listing-photo-preview {
+  position: relative;
+  height: 160px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ss-frame-bg);
+}
+
+.listing-photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.listing-photo-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(26, 26, 26, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* --- Chats list page --- */
+.chats-list-page {
+  padding-top: 12px;
+  padding-bottom: 4px;
+}
+
+.chats-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: var(--ss-text-muted);
+  padding: 48px 0;
+  text-align: center;
+}
+
+.chats-empty i {
+  font-size: 32px;
+  color: var(--ss-border);
+}
+
+.chats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.chat-list-item:hover {
+  background: var(--ss-bg);
+}
+
+.chat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ss-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.chat-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-list-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-list-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chat-list-item-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.chat-list-item-time {
+  font-size: 12px;
+  color: var(--ss-text-muted);
+}
+
+.chat-list-item-preview {
+  font-size: 13px;
+  color: var(--ss-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-list-item-product-tag {
+  display: inline-block;
+  background: var(--ss-accent);
+  color: var(--ss-accent-text);
+  font-weight: 700;
+  font-size: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+}
+
+.chat-unread-badge {
+  background: var(--ss-accent);
+  color: var(--ss-accent-text);
+  border-radius: 999px;
+  min-width: 20px;
+  height: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+/* --- Chat room page --- */
+/* Overrides the default .market-page padding-bottom/overflow so this
+   instance can behave as a fixed-height flex column with its own
+   internal scroll region, while still using the shared white-card frame. */
+.market-page.chat-room-card {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+  height: 78vh;
+}
+
+@media (max-width: 640px) {
+  .market-page.chat-room-card {
+    height: 100vh;
+  }
+}
+
+.chat-room-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+}
+
+.chat-room-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-product-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--ss-border);
+  background: var(--ss-bg);
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+
+.chat-product-banner-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--ss-surface);
+}
+
+.chat-product-banner-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-product-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-product-banner-title {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-product-banner-price {
+  font-size: 12px;
+  color: var(--ss-primary-dark);
+  font-weight: 600;
+}
+
+.chat-product-banner-link {
+  font-size: 12px;
+  color: var(--ss-primary);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.chat-bubble-row {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 10px;
+}
+
+.chat-bubble-row.mine {
+  justify-content: flex-end;
+}
+
+.chat-bubble {
+  max-width: 75%;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+}
+
+.chat-bubble-theirs {
+  background: var(--ss-surface);
+  border: 1px solid var(--ss-border);
+  color: var(--ss-text);
+}
+
+.chat-bubble-mine {
+  background: var(--ss-primary);
+  color: #fff;
+}
+
+.chat-bubble-time {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.chat-room-input-bar {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--ss-border);
+  background: var(--ss-surface);
+  flex-shrink: 0;
+}
+
+.chat-room-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--ss-border);
+  border-radius: 999px;
+  font-size: 14px;
+  outline: none;
+}
+
+.chat-room-input:focus {
+  border-color: var(--ss-primary);
+}
+
+.chat-room-send {
+  background: var(--ss-primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chat-room-send:disabled {
+  background: var(--ss-border);
+  color: var(--ss-text-muted);
+  cursor: not-allowed;
+}
+
+/* --- Profile page --- */
+.profile-page {
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+
+.profile-card {
+  padding: 20px 0 4px;
+  text-align: center;
+}
+
+.profile-avatar-large {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--ss-primary);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 20px;
+}
+
+.profile-email {
+  color: var(--ss-text-muted);
+  font-size: 14px;
+  margin: 4px 0 20px;
+}
+
+.profile-field-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid var(--ss-border);
+  font-size: 14px;
+  text-align: left;
+}
+
+.profile-field-label {
+  color: var(--ss-text-muted);
+}
+
+.profile-field-value {
+  font-weight: 500;
+}
+
+.profile-success {
+  color: var(--ss-success);
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.profile-secondary-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* --- My listings page --- */
+.my-listings-page {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
+
+.my-listings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-listing-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ss-bg);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.my-listing-image {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--ss-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--ss-text-muted);
+}
+
+.my-listing-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-listing-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-listing-title {
+  font-weight: 600;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.my-listing-price {
+  color: var(--ss-primary-dark);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.my-listing-status {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.my-listing-status-available {
+  background: #E1F5EE;
+  color: #085041;
+}
+
+.my-listing-status-sold {
+  background: var(--ss-bg);
+  color: var(--ss-text-muted);
+}
+
+.my-listing-status-removed {
+  background: #FCEBEB;
+  color: #791F1F;
+}
+
+.my-listing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.my-listing-delete {
+  color: var(--ss-danger);
+  border-color: var(--ss-danger);
+}
