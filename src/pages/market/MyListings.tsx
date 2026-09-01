@@ -98,6 +98,9 @@ const MyListings: React.FC = () => {
                     </span>
                   </div>
                   <div className="my-listing-actions">
+                    <Link to={`/market/edit/${p.product_id}`} className="market-btn-ghost">
+                      Edit
+                    </Link>
                     {p.status === 'available' && (
                       <button
                         className="market-btn-ghost"

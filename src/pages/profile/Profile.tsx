@@ -1,6 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { api } from '../../lib/api';
+import StarRating from '../../components/StarRating';
+
+interface Review {
+  review_id: number;
+  reviewer_id: number;
+  reviewer_name: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
 
 const Profile: React.FC = () => {
   const { user, updateProfile, logout } = useAuth();
@@ -11,6 +22,25 @@ const Profile: React.FC = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get<{ reviews: Review[]; average_rating: number | null; review_count: number }>(
+        `/reviews/user/${user.user_id}`
+      )
+      .then((res) => {
+        setReviews(res.reviews);
+        setAverageRating(res.average_rating);
+        setReviewCount(res.review_count);
+      })
+      .finally(() => setLoadingReviews(false));
+  }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +147,36 @@ const Profile: React.FC = () => {
                   Cancel
                 </button>
               </form>
+            )}
+          </div>
+
+          <div className="profile-reviews-card">
+            <h2 className="profile-reviews-title">Reviews</h2>
+            {loadingReviews ? (
+              <p className="market-status">Loading...</p>
+            ) : reviewCount === 0 ? (
+              <p className="market-status">No reviews yet.</p>
+            ) : (
+              <>
+                <div className="profile-reviews-summary">
+                  <span className="profile-reviews-average">{averageRating}</span>
+                  <StarRating value={averageRating || 0} size={16} />
+                  <span className="profile-reviews-count">
+                    ({reviewCount} review{reviewCount !== 1 ? 's' : ''})
+                  </span>
+                </div>
+                <div className="profile-reviews-list">
+                  {reviews.map((r) => (
+                    <div key={r.review_id} className="profile-review-item">
+                      <div className="profile-review-header">
+                        <strong>{r.reviewer_name}</strong>
+                        <StarRating value={r.rating} size={13} />
+                      </div>
+                      {r.comment && <p className="profile-review-comment">{r.comment}</p>}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>

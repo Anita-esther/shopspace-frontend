@@ -158,7 +158,12 @@ const ProductDetail: React.FC = () => {
               <p className="product-detail-own-note">This item has already been sold.</p>
             )}
             {isOwnListing && (
-              <p className="product-detail-own-note">This is your own listing.</p>
+              <div className="product-detail-cta-group">
+                <Link to={`/market/edit/${product.product_id}`} className="market-btn-primary product-detail-cta">
+                  Edit Listing
+                </Link>
+                <p className="product-detail-own-note">This is your own listing.</p>
+              </div>
             )}
           </div>
         </div>

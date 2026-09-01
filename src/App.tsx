@@ -7,11 +7,14 @@ import Register from './pages/auth/Register';
 import MarketHome from './pages/market/MarketHome';
 import ProductDetail from './pages/market/ProductDetail';
 import CreateListing from './pages/market/CreateListing';
+import EditListing from './pages/market/EditListing';
 import ChatsList from './pages/chat/ChatsList';
 import ChatRoom from './pages/chat/ChatRoom';
 import Profile from './pages/profile/Profile';
 import MyListings from './pages/market/MyListings';
 import Transactions from './pages/transactions/Transactions';
+import RequireAdmin from './components/RequireAdmin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import './theme.css';
 
 const App: React.FC = () => {
@@ -34,6 +37,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <CreateListing />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/market/edit/:productId"
+            element={
+              <ProtectedRoute>
+                <EditListing />
               </ProtectedRoute>
             }
           />
@@ -83,6 +94,14 @@ const App: React.FC = () => {
               <ProtectedRoute>
                 <Transactions />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminDashboard />
+              </RequireAdmin>
             }
           />
           <Route path="*" element={<Navigate to="/login" replace />} />

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
+import StarRating from '../../components/StarRating';
 
 interface Transaction {
   transaction_id: number;
@@ -15,6 +16,7 @@ interface Transaction {
   agreed_price: string;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
+  reviewed_by_me: number | boolean;
 }
 
 const formatMoney = (price: string) =>
@@ -27,6 +29,14 @@ const Transactions: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
+
+  // Review form state, keyed to whichever transaction row currently has the
+  // form open (only one at a time).
+  const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
 
   const load = () => {
     api
@@ -58,6 +68,39 @@ const Transactions: React.FC = () => {
     }
   };
 
+  const openReviewForm = (id: number) => {
+    setReviewingId(id);
+    setReviewRating(0);
+    setReviewComment('');
+    setReviewError(null);
+  };
+
+  const closeReviewForm = () => {
+    setReviewingId(null);
+  };
+
+  const submitReview = async (transactionId: number) => {
+    if (reviewRating === 0) {
+      setReviewError('Please choose a star rating');
+      return;
+    }
+    setReviewError(null);
+    setSubmittingReview(true);
+    try {
+      await api.post(
+        '/reviews',
+        { transaction_id: transactionId, rating: reviewRating, comment: reviewComment || undefined },
+        { auth: true }
+      );
+      setReviewingId(null);
+      load();
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   return (
     <div className="market-page-outer">
       <div className="market-page ss-medium">
@@ -78,6 +121,7 @@ const Transactions: React.FC = () => {
               {transactions.map((t) => {
                 const isBuyer = user?.user_id === t.buyer_id;
                 const otherPartyName = isBuyer ? t.seller_name : t.buyer_name;
+                const isReviewing = reviewingId === t.transaction_id;
                 return (
                   <div key={t.transaction_id} className="transaction-row">
                     <div className="transaction-image">
@@ -96,6 +140,55 @@ const Transactions: React.FC = () => {
                       <span className={`transaction-status transaction-status-${t.status}`}>
                         {t.status.charAt(0).toUpperCase() + t.status.slice(1)}
                       </span>
+
+                      {t.status === 'completed' && (
+                        <>
+                          {isReviewing ? (
+                            <div className="review-form">
+                              <div className="review-form-label">Rate {otherPartyName}</div>
+                              <StarRating value={reviewRating} onChange={setReviewRating} size={22} />
+                              <textarea
+                                className="auth-input review-form-comment"
+                                placeholder="How did it go? (optional)"
+                                rows={2}
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                              />
+                              {reviewError && <p className="auth-error">{reviewError}</p>}
+                              <div className="review-form-actions">
+                                <button
+                                  type="button"
+                                  className="market-btn-primary"
+                                  disabled={submittingReview}
+                                  onClick={() => submitReview(t.transaction_id)}
+                                >
+                                  {submittingReview ? 'Submitting...' : 'Submit review'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="market-btn-ghost"
+                                  disabled={submittingReview}
+                                  onClick={closeReviewForm}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          ) : t.reviewed_by_me ? (
+                            <div className="review-reviewed-tag">
+                              <i className="ti ti-check" aria-hidden="true"></i> You reviewed this
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className="market-btn-primary review-leave-btn"
+                              onClick={() => openReviewForm(t.transaction_id)}
+                            >
+                              Leave a review
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                     {t.status === 'pending' && (
                       <div className="transaction-actions">

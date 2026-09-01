@@ -74,6 +74,9 @@ const MarketHome: React.FC = () => {
             <Link to="/chats" className="market-btn-ghost">Chats</Link>
             <Link to="/transactions" className="market-btn-ghost">Transactions</Link>
             <Link to="/profile" className="market-btn-ghost">Profile</Link>
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="market-btn-ghost">Admin</Link>
+            )}
             <Link to="/market/new" className="market-btn-primary">+ Sell an item</Link>
             <button className="market-btn-ghost" onClick={logout}>Log out</button>
           </div>
