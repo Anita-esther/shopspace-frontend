@@ -1555,3 +1555,165 @@ textarea.auth-input {
   color: #16A765;
   border-color: #16A765;
 }
+
+/* --- Landing page (public, pre-login) ---
+   Intentionally full-bleed: unlike the logged-in app, this page fills the
+   viewport edge-to-edge with no grey-blue frame/card behind it. */
+.landing-page {
+  min-height: 100vh;
+  background: var(--ss-surface);
+}
+
+.landing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--ss-header);
+  padding: 16px 24px;
+}
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.landing-logo i {
+  font-size: 20px;
+}
+
+.landing-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.landing-nav-login {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.landing-nav-signup {
+  background: var(--ss-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 64px 24px 48px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.landing-eyebrow {
+  display: inline-block;
+  background: var(--ss-accent);
+  color: var(--ss-accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.landing-hero h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--ss-text);
+  margin: 0 0 16px;
+  line-height: 1.25;
+}
+
+.landing-hero p {
+  font-size: 15px;
+  color: var(--ss-text-muted);
+  max-width: 460px;
+  margin: 0 auto 28px;
+  line-height: 1.6;
+}
+
+.landing-hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing-cta {
+  text-decoration: none;
+  padding: 13px 28px;
+  font-size: 15px;
+}
+
+.landing-cta-secondary {
+  background: var(--ss-surface);
+  color: var(--ss-header);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 13px 28px;
+  border-radius: 999px;
+  border: 1px solid var(--ss-border);
+  text-decoration: none;
+}
+
+.landing-features {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 24px 72px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.landing-feature {
+  background: var(--ss-frame-bg);
+  border-radius: 12px;
+  padding: 24px 18px;
+  text-align: center;
+}
+
+.landing-feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #FDEDE3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 20px;
+  color: var(--ss-primary);
+}
+
+.landing-feature-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ss-text);
+  margin-bottom: 4px;
+}
+
+.landing-feature-body {
+  font-size: 13px;
+  color: var(--ss-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .landing-hero h1 {
+    font-size: 26px;
+  }
+
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+}

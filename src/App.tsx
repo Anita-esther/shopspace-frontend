@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import LandingPage from './pages/landing/LandingPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import MarketHome from './pages/market/MarketHome';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
@@ -104,7 +106,7 @@ const App: React.FC = () => {
               </RequireAdmin>
             }
           />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
