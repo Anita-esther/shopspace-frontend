@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import StarRating from '../../components/StarRating';
 
 interface Review {
   review_id: number;
-  reviewer_id: number;
+  reviewer_id: string;
   reviewer_name: string;
   rating: number;
   comment: string | null;
@@ -30,14 +30,23 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    api
-      .get<{ reviews: Review[]; average_rating: number | null; review_count: number }>(
-        `/reviews/user/${user.user_id}`
-      )
-      .then((res) => {
-        setReviews(res.reviews);
-        setAverageRating(res.average_rating);
-        setReviewCount(res.review_count);
+    supabase
+      .from('reviews')
+      .select('review_id, reviewer_id, rating, comment, created_at, reviewer:users!reviews_reviewer_id_fkey(full_name)')
+      .eq('reviewee_id', user.user_id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        const rows = ((data as any[]) || []).map((r) => ({
+          ...r,
+          reviewer_name: r.reviewer?.full_name || '',
+        }));
+        setReviews(rows);
+        setReviewCount(rows.length);
+        setAverageRating(
+          rows.length > 0
+            ? Math.round((rows.reduce((sum, r) => sum + r.rating, 0) / rows.length) * 10) / 10
+            : null
+        );
       })
       .finally(() => setLoadingReviews(false));
   }, [user]);

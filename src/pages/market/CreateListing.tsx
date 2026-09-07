@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import PhotoUploadField from '../../components/PhotoUploadField';
 
 interface Category {
@@ -8,8 +9,18 @@ interface Category {
   name: string;
 }
 
+const uploadProductImage = async (file: File, userId: string): Promise<string> => {
+  const ext = file.name.split('.').pop();
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from('product-images').upload(path, file);
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return data.publicUrl;
+};
+
 const CreateListing: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -22,14 +33,20 @@ const CreateListing: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<{ categories: Category[] }>('/categories').then((res) => {
-      setCategories(res.categories);
-      if (res.categories.length > 0) setCategoryId(String(res.categories[0].category_id));
-    });
+    supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true })
+      .then(({ data }) => {
+        const cats = (data as Category[]) || [];
+        setCategories(cats);
+        if (cats.length > 0) setCategoryId(String(cats[0].category_id));
+      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setError(null);
     setBusy(true);
     try {
@@ -37,29 +54,29 @@ const CreateListing: React.FC = () => {
 
       if (imageFile) {
         setUploadingImage(true);
-        const formData = new FormData();
-        formData.append('image', imageFile);
         try {
-          const uploadRes = await api.upload<{ url: string }>('/uploads/image', formData, { auth: true });
-          imageUrl = uploadRes.url;
+          imageUrl = await uploadProductImage(imageFile, user.user_id);
         } finally {
           setUploadingImage(false);
         }
       }
 
-      const res = await api.post<{ product: { product_id: number } }>(
-        '/products',
-        {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          seller_id: user.user_id,
           title,
           description,
           price: Number(price),
           category_id: Number(categoryId),
           condition,
-          image_url: imageUrl,
-        },
-        { auth: true }
-      );
-      navigate(`/market/product/${res.product.product_id}`);
+          image_url: imageUrl || null,
+        })
+        .select('product_id')
+        .single();
+
+      if (error) throw new Error(error.message);
+      navigate(`/market/product/${data.product_id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create listing');
     } finally {
@@ -97,7 +114,7 @@ const CreateListing: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
             />
 
-            <label className="auth-label" htmlFor="price">Price (\u20a6)</label>
+            <label className="auth-label" htmlFor="price">Price (&#8358;)</label>
             <input
               id="price"
               type="number"

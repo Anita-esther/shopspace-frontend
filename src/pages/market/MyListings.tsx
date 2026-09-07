@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 import { categoryIcon } from '../../lib/categoryIcon';
 
 interface MyProduct {
@@ -18,23 +19,35 @@ const formatMoney = (price: string) =>
   );
 
 const MyListings: React.FC = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<MyProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = () => {
-    api
-      .get<{ products: MyProduct[] }>('/products/mine', { auth: true })
-      .then((res) => setProducts(res.products))
-      .finally(() => setLoading(false));
+    if (!user) return;
+    setLoading(true);
+    supabase
+      .from('products')
+      .select('product_id, title, price, image_url, status, category:categories(name)')
+      .eq('seller_id', user.user_id)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        const rows = ((data as any[]) || []).map((p) => ({
+          ...p,
+          category_name: p.category?.name || '',
+        }));
+        setProducts(rows);
+        setLoading(false);
+      });
   };
 
-  useEffect(load, []);
+  useEffect(load, [user]);
 
   const handleMarkSold = async (id: number) => {
     setBusyId(id);
     try {
-      await api.put(`/products/${id}`, { status: 'sold' }, { auth: true });
+      await supabase.from('products').update({ status: 'sold' }).eq('product_id', id);
       load();
     } finally {
       setBusyId(null);
@@ -44,7 +57,7 @@ const MyListings: React.FC = () => {
   const handleRelist = async (id: number) => {
     setBusyId(id);
     try {
-      await api.put(`/products/${id}`, { status: 'available' }, { auth: true });
+      await supabase.from('products').update({ status: 'available' }).eq('product_id', id);
       load();
     } finally {
       setBusyId(null);
@@ -55,7 +68,7 @@ const MyListings: React.FC = () => {
     if (!confirm('Delete this listing? This cannot be undone.')) return;
     setBusyId(id);
     try {
-      await api.delete(`/products/${id}`, { auth: true });
+      await supabase.from('products').delete().eq('product_id', id);
       load();
     } finally {
       setBusyId(null);

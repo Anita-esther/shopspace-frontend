@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { categoryIcon } from '../../lib/categoryIcon';
 
@@ -34,19 +34,33 @@ const MarketHome: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    api.get<{ categories: Category[] }>('/categories').then((res) => setCategories(res.categories));
+    supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true })
+      .then(({ data }) => setCategories((data as Category[]) || []));
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set('search', search);
-    if (categoryId) params.set('category_id', categoryId);
+    let query = supabase
+      .from('products')
+      .select('product_id, title, price, image_url, condition, category:categories(name)')
+      .eq('status', 'available')
+      .order('created_at', { ascending: false })
+      .limit(100);
 
-    api
-      .get<{ products: Product[] }>(`/products?${params.toString()}`)
-      .then((res) => setProducts(res.products))
-      .finally(() => setLoading(false));
+    if (search) query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+    if (categoryId) query = query.eq('category_id', categoryId);
+
+    query.then(({ data }) => {
+      const rows = ((data as any[]) || []).map((p) => ({
+        ...p,
+        category_name: p.category?.name || '',
+      }));
+      setProducts(rows);
+      setLoading(false);
+    });
   }, [search, categoryId]);
 
   const handleCategoryIconClick = (id: string) => {

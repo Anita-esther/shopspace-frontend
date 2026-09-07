@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { categoryIcon } from '../../lib/categoryIcon';
 
@@ -13,7 +13,7 @@ interface Product {
   category_name: string;
   condition: string;
   status: 'available' | 'sold' | 'removed';
-  seller_id: number;
+  seller_id: string;
   seller_name: string;
 }
 
@@ -40,10 +40,23 @@ const ProductDetail: React.FC = () => {
   const [transactionError, setTransactionError] = useState<string | null>(null);
 
   useEffect(() => {
-    api
-      .get<{ product: Product }>(`/products/${productId}`)
-      .then((res) => setProduct(res.product))
-      .catch((err) => setError(err.message))
+    supabase
+      .from('products')
+      .select('*, category:categories(name), seller:users!products_seller_id_fkey(full_name)')
+      .eq('product_id', productId)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setError(error?.message || 'Product not found');
+          return;
+        }
+        const p: any = data;
+        setProduct({
+          ...p,
+          category_name: p.category?.name || '',
+          seller_name: p.seller?.full_name || '',
+        });
+      })
       .finally(() => setLoading(false));
   }, [productId]);
 
@@ -54,15 +67,18 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleMarkPurchased = async () => {
-    if (!product) return;
+    if (!product || !user) return;
     setTransactionError(null);
     setStartingTransaction(true);
     try {
-      await api.post(
-        '/transactions',
-        { product_id: product.product_id, agreed_price: product.price },
-        { auth: true }
-      );
+      const { error } = await supabase.from('transactions').insert({
+        product_id: product.product_id,
+        buyer_id: user.user_id,
+        seller_id: product.seller_id,
+        agreed_price: product.price,
+        status: 'pending',
+      });
+      if (error) throw new Error(error.message);
       navigate('/transactions');
     } catch (err) {
       setTransactionError(err instanceof Error ? err.message : 'Failed to start transaction');

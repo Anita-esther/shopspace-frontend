@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 interface Stats {
   total_users: number;
@@ -12,12 +12,12 @@ interface Stats {
 }
 
 interface AdminUser {
-  user_id: number;
+  user_id: string;
   full_name: string;
   email: string;
   phone_number: string | null;
   matric_number: string | null;
-  role: 'student' | 'admin';
+  role: 'user' | 'admin';
   status: 'active' | 'suspended';
   created_at: string;
 }
@@ -52,20 +52,23 @@ const AdminDashboard: React.FC = () => {
 
   const [userSearch, setUserSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
-  const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<string | number | null>(null);
 
   const loadAll = () => {
     setLoading(true);
     setError(null);
     Promise.all([
-      api.get<{ stats: Stats }>('/admin/stats', { auth: true }),
-      api.get<{ users: AdminUser[] }>('/admin/users', { auth: true }),
-      api.get<{ products: AdminProduct[] }>('/admin/products', { auth: true }),
+      supabase.rpc('admin_stats').single(),
+      supabase.from('users').select('*').order('created_at', { ascending: false }).limit(200),
+      supabase.rpc('admin_search_products'),
     ])
       .then(([statsRes, usersRes, productsRes]) => {
-        setStats(statsRes.stats);
-        setUsers(usersRes.users);
-        setProducts(productsRes.products);
+        if (statsRes.error) throw new Error(statsRes.error.message);
+        if (usersRes.error) throw new Error(usersRes.error.message);
+        if (productsRes.error) throw new Error(productsRes.error.message);
+        setStats(statsRes.data as Stats);
+        setUsers((usersRes.data as AdminUser[]) || []);
+        setProducts((productsRes.data as AdminProduct[]) || []);
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load dashboard'))
       .finally(() => setLoading(false));
@@ -80,7 +83,11 @@ const AdminDashboard: React.FC = () => {
 
     setBusyId(u.user_id);
     try {
-      await api.put(`/admin/users/${u.user_id}/status`, { status: nextStatus }, { auth: true });
+      const { error } = await supabase
+        .from('users')
+        .update({ status: nextStatus })
+        .eq('user_id', u.user_id);
+      if (error) throw new Error(error.message);
       setUsers((prev) => prev.map((x) => (x.user_id === u.user_id ? { ...x, status: nextStatus } : x)));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to update user');
@@ -94,7 +101,8 @@ const AdminDashboard: React.FC = () => {
 
     setBusyId(p.product_id);
     try {
-      await api.delete(`/products/${p.product_id}`, { auth: true });
+      const { error } = await supabase.from('products').delete().eq('product_id', p.product_id);
+      if (error) throw new Error(error.message);
       setProducts((prev) => prev.filter((x) => x.product_id !== p.product_id));
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to remove listing');

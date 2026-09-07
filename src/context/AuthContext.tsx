@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '../lib/api';
+import { supabase } from '../lib/supabase';
 
 export interface User {
-  user_id: number;
+  user_id: string;
   full_name: string;
   email: string;
   phone_number: string | null;
   matric_number: string | null;
   profile_image: string | null;
-  role: 'student' | 'admin';
+  role: 'user' | 'admin';
   status: 'active' | 'suspended';
 }
 
@@ -22,7 +22,6 @@ interface RegisterInput {
 
 interface AuthContextValue {
   user: User | null;
-  token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
@@ -33,68 +32,114 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const TOKEN_KEY = 'shopspace_token';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [loading, setLoading] = useState(true);
 
-  const loadCurrentUser = async () => {
-    try {
-      const res = await api.get<{ user: User }>('/auth/me', { auth: true });
-      setUser(res.user);
-    } catch {
-      // Token invalid/expired — clear it out
-      localStorage.removeItem(TOKEN_KEY);
-      setToken(null);
-      setUser(null);
+  // Loads (or waits for) the public.users profile row for a given auth user id.
+  // Right after sign-up the handle_new_user trigger may not have committed
+  // yet, so we retry briefly instead of failing outright.
+  const loadProfile = async (userId: string): Promise<User | null> => {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (data) return data as User;
+      if (error && attempt === 4) throw error;
+      await new Promise((r) => setTimeout(r, 300));
     }
+    return null;
   };
 
   useEffect(() => {
-    (async () => {
-      if (token) {
-        await loadCurrentUser();
+    let mounted = true;
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const profile = await loadProfile(session.user.id).catch(() => null);
+        if (mounted) setUser(profile);
       }
-      setLoading(false);
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (mounted) setLoading(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const profile = await loadProfile(session.user.id).catch(() => null);
+        if (mounted) setUser(profile);
+      } else {
+        if (mounted) setUser(null);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
-    const res = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
-    localStorage.setItem(TOKEN_KEY, res.token);
-    setToken(res.token);
-    setUser(res.user);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    if (data.user) {
+      const profile = await loadProfile(data.user.id);
+      if (profile?.status === 'suspended') {
+        await supabase.auth.signOut();
+        throw new Error('This account has been suspended');
+      }
+      setUser(profile);
+    }
   };
 
   const register = async (input: RegisterInput) => {
-    const res = await api.post<{ token: string; user: User }>('/auth/register', input);
-    localStorage.setItem(TOKEN_KEY, res.token);
-    setToken(res.token);
-    setUser(res.user);
+    const { data, error } = await supabase.auth.signUp({
+      email: input.email,
+      password: input.password,
+      options: {
+        data: {
+          full_name: input.full_name,
+          phone_number: input.phone_number || null,
+          matric_number: input.matric_number || null,
+        },
+      },
+    });
+    if (error) throw new Error(error.message);
+    if (data.user) {
+      const profile = await loadProfile(data.user.id);
+      setUser(profile);
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
+    supabase.auth.signOut();
     setUser(null);
   };
 
   const refreshUser = async () => {
-    if (token) await loadCurrentUser();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const profile = await loadProfile(session.user.id);
+      setUser(profile);
+    }
   };
 
   const updateProfile = async (
     input: Partial<Pick<User, 'full_name' | 'phone_number' | 'matric_number' | 'profile_image'>>
   ) => {
-    const res = await api.put<{ user: User }>('/auth/me', input, { auth: true });
-    setUser(res.user);
+    if (!user) throw new Error('Not signed in');
+    const { data, error } = await supabase
+      .from('users')
+      .update(input)
+      .eq('user_id', user.user_id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    setUser(data as User);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser, updateProfile }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

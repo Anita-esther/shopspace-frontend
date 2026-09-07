@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 
 interface Conversation {
-  other_user_id: number;
+  other_user_id: string;
   other_full_name: string;
   other_avatar_url: string | null;
   last_message: string | null;
@@ -25,9 +25,9 @@ const ChatsList: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    api
-      .get<{ conversations: Conversation[] }>('/messages/conversations', { auth: true })
-      .then((res) => setConversations(res.conversations))
+    supabase
+      .rpc('get_conversations')
+      .then(({ data }) => setConversations((data as Conversation[]) || []))
       .finally(() => setLoading(false));
   };
 

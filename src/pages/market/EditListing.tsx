@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import PhotoUploadField from '../../components/PhotoUploadField';
 
@@ -17,8 +17,17 @@ interface Product {
   image_url: string | null;
   category_id: number;
   condition: string;
-  seller_id: number;
+  seller_id: string;
 }
+
+const uploadProductImage = async (file: File, userId: string): Promise<string> => {
+  const ext = file.name.split('.').pop();
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from('product-images').upload(path, file);
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return data.publicUrl;
+};
 
 const EditListing: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -45,14 +54,25 @@ const EditListing: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get<{ categories: Category[] }>('/categories').then((res) => setCategories(res.categories));
+    supabase
+      .from('categories')
+      .select('*')
+      .order('name', { ascending: true })
+      .then(({ data }) => setCategories((data as Category[]) || []));
   }, []);
 
   useEffect(() => {
-    api
-      .get<{ product: Product }>(`/products/${productId}`)
-      .then((res) => {
-        const p = res.product;
+    supabase
+      .from('products')
+      .select('*')
+      .eq('product_id', productId)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setLoadError(error?.message || 'Failed to load listing');
+          return;
+        }
+        const p = data as Product;
         if (user && p.seller_id !== user.user_id) {
           setNotAllowed(true);
           return;
@@ -64,7 +84,6 @@ const EditListing: React.FC = () => {
         setCondition(p.condition);
         setExistingImageUrl(p.image_url);
       })
-      .catch((err) => setLoadError(err instanceof Error ? err.message : 'Failed to load listing'))
       .finally(() => setLoading(false));
   }, [productId, user]);
 
@@ -75,6 +94,7 @@ const EditListing: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setError(null);
     setBusy(true);
     try {
@@ -82,34 +102,31 @@ const EditListing: React.FC = () => {
       // - a new file was picked -> upload it, send the new URL
       // - the existing photo was explicitly removed -> send null to clear it
       // - otherwise -> omit the field entirely so the current photo is kept
-      let imageUrl: string | null | undefined;
+      const updates: Record<string, unknown> = {
+        title,
+        description,
+        price: Number(price),
+        category_id: Number(categoryId),
+        condition,
+      };
 
       if (imageFile) {
         setUploadingImage(true);
-        const formData = new FormData();
-        formData.append('image', imageFile);
         try {
-          const uploadRes = await api.upload<{ url: string }>('/uploads/image', formData, { auth: true });
-          imageUrl = uploadRes.url;
+          updates.image_url = await uploadProductImage(imageFile, user.user_id);
         } finally {
           setUploadingImage(false);
         }
       } else if (imageRemoved) {
-        imageUrl = null;
+        updates.image_url = null;
       }
 
-      await api.put(
-        `/products/${productId}`,
-        {
-          title,
-          description,
-          price: Number(price),
-          category_id: Number(categoryId),
-          condition,
-          ...(imageUrl !== undefined ? { image_url: imageUrl } : {}),
-        },
-        { auth: true }
-      );
+      const { error } = await supabase
+        .from('products')
+        .update(updates)
+        .eq('product_id', productId);
+
+      if (error) throw new Error(error.message);
       navigate(`/market/product/${productId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update listing');
@@ -180,7 +197,7 @@ const EditListing: React.FC = () => {
               onChange={(e) => setDescription(e.target.value)}
             />
 
-            <label className="auth-label" htmlFor="price">Price (\u20a6)</label>
+            <label className="auth-label" htmlFor="price">Price (&#8358;)</label>
             <input
               id="price"
               type="number"

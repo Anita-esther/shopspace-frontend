@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import StarRating from '../../components/StarRating';
 
@@ -9,14 +9,14 @@ interface Transaction {
   product_id: number;
   product_title: string;
   product_image_url: string | null;
-  buyer_id: number;
-  seller_id: number;
+  buyer_id: string;
+  seller_id: string;
   buyer_name: string;
   seller_name: string;
   agreed_price: string;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
-  reviewed_by_me: number | boolean;
+  reviewed_by_me: boolean;
 }
 
 const formatMoney = (price: string) =>
@@ -28,7 +28,6 @@ const Transactions: React.FC = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<number | null>(null);
 
   // Review form state, keyed to whichever transaction row currently has the
   // form open (only one at a time).
@@ -37,20 +36,45 @@ const Transactions: React.FC = () => {
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = () => {
-    api
-      .get<{ transactions: Transaction[] }>('/transactions/mine', { auth: true })
-      .then((res) => setTransactions(res.transactions))
-      .finally(() => setLoading(false));
+    if (!user) return;
+    setLoading(true);
+    supabase
+      .from('transactions')
+      .select(
+        `*,
+         product:products(title, image_url),
+         buyer:users!transactions_buyer_id_fkey(full_name),
+         seller:users!transactions_seller_id_fkey(full_name),
+         reviews(reviewer_id)`
+      )
+      .or(`buyer_id.eq.${user.user_id},seller_id.eq.${user.user_id}`)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        const rows = ((data as any[]) || []).map((t) => ({
+          ...t,
+          product_title: t.product?.title || '',
+          product_image_url: t.product?.image_url || null,
+          buyer_name: t.buyer?.full_name || '',
+          seller_name: t.seller?.full_name || '',
+          reviewed_by_me: (t.reviews || []).some((r: any) => r.reviewer_id === user.user_id),
+        }));
+        setTransactions(rows);
+        setLoading(false);
+      });
   };
 
-  useEffect(load, []);
+  useEffect(load, [user]);
 
   const handleComplete = async (id: number) => {
     setBusyId(id);
     try {
-      await api.put(`/transactions/${id}/complete`, undefined, { auth: true });
+      await supabase.from('transactions').update({ status: 'completed' }).eq('transaction_id', id);
+      // Mirrors the old backend behaviour: mark the product sold too.
+      const tx = transactions.find((t) => t.transaction_id === id);
+      if (tx) await supabase.from('products').update({ status: 'sold' }).eq('product_id', tx.product_id);
       load();
     } finally {
       setBusyId(null);
@@ -61,7 +85,7 @@ const Transactions: React.FC = () => {
     if (!confirm('Cancel this transaction?')) return;
     setBusyId(id);
     try {
-      await api.put(`/transactions/${id}/cancel`, undefined, { auth: true });
+      await supabase.from('transactions').update({ status: 'cancelled' }).eq('transaction_id', id);
       load();
     } finally {
       setBusyId(null);
@@ -80,6 +104,7 @@ const Transactions: React.FC = () => {
   };
 
   const submitReview = async (transactionId: number) => {
+    if (!user) return;
     if (reviewRating === 0) {
       setReviewError('Please choose a star rating');
       return;
@@ -87,11 +112,18 @@ const Transactions: React.FC = () => {
     setReviewError(null);
     setSubmittingReview(true);
     try {
-      await api.post(
-        '/reviews',
-        { transaction_id: transactionId, rating: reviewRating, comment: reviewComment || undefined },
-        { auth: true }
-      );
+      const tx = transactions.find((t) => t.transaction_id === transactionId);
+      if (!tx) throw new Error('Transaction not found');
+      const revieweeId = tx.buyer_id === user.user_id ? tx.seller_id : tx.buyer_id;
+
+      const { error } = await supabase.from('reviews').insert({
+        transaction_id: transactionId,
+        reviewer_id: user.user_id,
+        reviewee_id: revieweeId,
+        rating: reviewRating,
+        comment: reviewComment || null,
+      });
+      if (error) throw new Error(error.message);
       setReviewingId(null);
       load();
     } catch (err) {
