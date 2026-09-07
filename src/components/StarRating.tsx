@@ -8,25 +8,34 @@ interface StarRatingProps {
   size?: number;
 }
 
+// Renders a single star at a given fill percentage (0-100) using two stacked
+// copies of the same outline ti-star glyph — a muted base star, and an
+// accent-colored star clipped to `fillPercent` width on top. This achieves a
+// partial/half-star fill without depending on ti-star-filled or
+// ti-star-half-filled, which the Tabler webfont CDN build doesn't reliably
+// serve (only the outline set ships in the plain webfont css).
+const Star: React.FC<{ fillPercent: number; size: number }> = ({ fillPercent, size }) => (
+  <span
+    className="star-rating-star"
+    style={{ fontSize: size, width: size, height: size }}
+  >
+    <i className="ti ti-star star-rating-icon star-rating-icon-base" aria-hidden="true"></i>
+    <span className="star-rating-fill-clip" style={{ width: `${fillPercent}%` }}>
+      <i className="ti ti-star star-rating-icon star-rating-icon-fill" aria-hidden="true"></i>
+    </span>
+  </span>
+);
+
 const StarRating: React.FC<StarRatingProps> = ({ value, onChange, size = 18 }) => {
   const interactive = Boolean(onChange);
 
   return (
     <div className="star-rating" role={interactive ? 'radiogroup' : undefined} aria-label="Rating">
       {[1, 2, 3, 4, 5].map((n) => {
-        let iconClass = 'ti-star';
-        if (value >= n) iconClass = 'ti-star-filled';
-        else if (value >= n - 0.5) iconClass = 'ti-star-half-filled';
+        const fillPercent = Math.max(0, Math.min(1, value - (n - 1))) * 100;
 
         if (!interactive) {
-          return (
-            <i
-              key={n}
-              className={`ti ${iconClass} star-rating-icon`}
-              style={{ fontSize: size }}
-              aria-hidden="true"
-            ></i>
-          );
+          return <Star key={n} fillPercent={fillPercent} size={size} />;
         }
 
         return (
@@ -38,7 +47,7 @@ const StarRating: React.FC<StarRatingProps> = ({ value, onChange, size = 18 }) =
             aria-pressed={value >= n}
             onClick={() => onChange && onChange(n)}
           >
-            <i className={`ti ${iconClass} star-rating-icon`} style={{ fontSize: size }} aria-hidden="true"></i>
+            <Star fillPercent={value >= n ? 100 : 0} size={size} />
           </button>
         );
       })}

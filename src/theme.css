@@ -165,20 +165,18 @@ body {
   text-decoration: underline;
 }
 
-/* --- Market page --- */
+/* --- Market page ---
+   Full-bleed, like the landing page: no grey backdrop, no floating card.
+   The white surface IS the page background, edge to edge. */
 .market-page-outer {
-  background: var(--ss-frame-bg);
+  background: var(--ss-surface);
   min-height: 100vh;
-  padding: 24px 16px;
 }
 
 .market-page {
   max-width: 1100px;
   margin: 0 auto;
   background: var(--ss-surface);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   padding-bottom: 20px;
 }
 
@@ -499,19 +497,6 @@ body {
 
 /* --- Responsive breakpoints --- */
 @media (max-width: 640px) {
-  .market-page-outer {
-    padding: 0;
-  }
-
-  .market-page {
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .market-header {
-    border-radius: 0;
-  }
-
   .market-menu-toggle {
     display: block;
   }
@@ -722,14 +707,43 @@ body {
   border-color: var(--ss-danger);
 }
 
-/* --- Star rating (used in review form + profile reviews) --- */
+/* --- Star rating (used in review form + profile reviews) ---
+   Two stacked ti-star icons per star: a muted base + an accent-colored copy
+   clipped to a percentage width, so partial/half fills work using only the
+   reliable outline glyph (see StarRating.tsx for why). */
 .star-rating {
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
+.star-rating-star {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
+
 .star-rating-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.star-rating-icon-base {
+  position: static;
+  color: var(--ss-border);
+}
+
+.star-rating-fill-clip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  display: block;
+}
+
+.star-rating-icon-fill {
   color: var(--ss-primary);
 }
 
@@ -997,18 +1011,13 @@ textarea.auth-input {
 /* --- Chat room page --- */
 /* Overrides the default .market-page padding-bottom/overflow so this
    instance can behave as a fixed-height flex column with its own
-   internal scroll region, while still using the shared white-card frame. */
+   internal scroll region, filling the full page height edge to edge like
+   the rest of the app now does. */
 .market-page.chat-room-card {
   display: flex;
   flex-direction: column;
   padding-bottom: 0;
-  height: 78vh;
-}
-
-@media (max-width: 640px) {
-  .market-page.chat-room-card {
-    height: 100vh;
-  }
+  height: 100vh;
 }
 
 .chat-room-name {

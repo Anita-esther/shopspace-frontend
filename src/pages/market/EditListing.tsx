@@ -62,11 +62,13 @@ const EditListing: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    supabase
-      .from('products')
-      .select('*')
-      .eq('product_id', productId)
-      .single()
+    Promise.resolve(
+      supabase
+        .from('products')
+        .select('*')
+        .eq('product_id', productId)
+        .single()
+    )
       .then(({ data, error }) => {
         if (error || !data) {
           setLoadError(error?.message || 'Failed to load listing');

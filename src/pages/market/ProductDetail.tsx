@@ -40,11 +40,13 @@ const ProductDetail: React.FC = () => {
   const [transactionError, setTransactionError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase
-      .from('products')
-      .select('*, category:categories(name), seller:users!products_seller_id_fkey(full_name)')
-      .eq('product_id', productId)
-      .single()
+    Promise.resolve(
+      supabase
+        .from('products')
+        .select('*, category:categories(name), seller:users!products_seller_id_fkey(full_name)')
+        .eq('product_id', productId)
+        .single()
+    )
       .then(({ data, error }) => {
         if (error || !data) {
           setError(error?.message || 'Product not found');

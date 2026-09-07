@@ -30,11 +30,13 @@ const Profile: React.FC = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('reviews')
-      .select('review_id, reviewer_id, rating, comment, created_at, reviewer:users!reviews_reviewer_id_fkey(full_name)')
-      .eq('reviewee_id', user.user_id)
-      .order('created_at', { ascending: false })
+    Promise.resolve(
+      supabase
+        .from('reviews')
+        .select('review_id, reviewer_id, rating, comment, created_at, reviewer:users!reviews_reviewer_id_fkey(full_name)')
+        .eq('reviewee_id', user.user_id)
+        .order('created_at', { ascending: false })
+    )
       .then(({ data }) => {
         const rows = ((data as any[]) || []).map((r) => ({
           ...r,

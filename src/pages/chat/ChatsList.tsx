@@ -25,8 +25,7 @@ const ChatsList: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   const load = () => {
-    supabase
-      .rpc('get_conversations')
+    Promise.resolve(supabase.rpc('get_conversations'))
       .then(({ data }) => setConversations((data as Conversation[]) || []))
       .finally(() => setLoading(false));
   };
